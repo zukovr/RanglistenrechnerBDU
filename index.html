@@ -1,0 +1,1290 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ranglisten Rechner</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+  :root {
+    --bg: #0f0f0f;
+    --bg2: #161616;
+    --bg3: #1e1e1e;
+    --bg4: #272727;
+    --border: #2e2e2e;
+    --border2: #3a3a3a;
+    --accent: #6c8fff;
+    --accent2: #5070e0;
+    --red: #e85a4a;
+    --green: #4ae8a0;
+    --blue: #4a9ae8;
+    --text: #e8e8e8;
+    --text2: #999;
+    --text3: #666;
+    --radius: 4px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* ── NAV ── */
+  nav {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 0;
+    padding: 0 24px;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .nav-logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    color: var(--accent);
+    letter-spacing: 2px;
+    padding: 16px 24px 16px 0;
+    border-right: 1px solid var(--border);
+    margin-right: 8px;
+  }
+  .nav-tab {
+    padding: 18px 20px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text2);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all .15s;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+  }
+  .nav-tab:hover { color: var(--text); }
+  .nav-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* ── LAYOUT ── */
+  .page { display: none; padding: 32px 24px; max-width: 1400px; margin: 0 auto; }
+  .page.active { display: block; }
+
+  h1 { font-family: 'Bebas Neue'; font-size: 36px; letter-spacing: 2px; color: var(--accent); margin-bottom: 4px; }
+  .subtitle { color: var(--text3); font-size: 13px; font-family: 'DM Mono'; margin-bottom: 28px; }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .card-title {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text3);
+    margin-bottom: 16px;
+  }
+
+  /* ── INPUTS ── */
+  input, select {
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius);
+    color: var(--text);
+    padding: 9px 12px;
+    font-size: 14px;
+    font-family: 'DM Sans', sans-serif;
+    outline: none;
+    transition: border-color .15s;
+    width: 100%;
+  }
+  input:focus, select:focus { border-color: var(--accent); }
+  select option { background: var(--bg3); }
+
+  /* ── BUTTONS ── */
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 9px 16px;
+    border: none; border-radius: var(--radius);
+    font-size: 13px; font-weight: 600; font-family: 'DM Sans';
+    cursor: pointer;
+    transition: all .15s;
+    text-transform: uppercase; letter-spacing: .5px;
+    white-space: nowrap;
+  }
+  .btn-primary { background: var(--accent); color: #000; }
+  .btn-primary:hover { background: var(--accent2); }
+  .btn-ghost { background: var(--bg4); color: var(--text2); border: 1px solid var(--border2); }
+  .btn-ghost:hover { color: var(--text); border-color: var(--border2); background: var(--bg3); }
+  .btn-danger { background: transparent; color: var(--red); border: 1px solid #3a2020; }
+  .btn-danger:hover { background: #2a1010; }
+  .btn-sm { padding: 6px 11px; font-size: 12px; }
+  .btn-success { background: var(--green); color: #000; }
+  .btn-success:hover { filter: brightness(.9); }
+
+  /* ── FORM ROW ── */
+  .form-row { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
+  .form-group { display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 120px; }
+  .form-group label { font-size: 11px; color: var(--text3); font-weight: 500; text-transform: uppercase; letter-spacing: .5px; }
+
+  /* ── TABLE ── */
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead tr { border-bottom: 1px solid var(--border2); }
+  th { padding: 10px 12px; text-align: left; font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 1px; }
+  td { padding: 10px 12px; border-bottom: 1px solid var(--border); color: var(--text2); vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: var(--bg3); }
+
+  /* ── BADGE ── */
+  .badge {
+    display: inline-flex; align-items: center;
+    padding: 3px 8px; border-radius: 2px;
+    font-family: 'DM Mono'; font-size: 12px; font-weight: 500;
+  }
+  .badge-gold { background: #131a30; color: var(--accent); border: 1px solid #1e2e50; }
+  .badge-silver { background: #1e1e22; color: #b0b0c0; border: 1px solid #2e2e38; }
+  .badge-bronze { background: #231a10; color: #c08040; border: 1px solid #332810; }
+  .badge-points { background: #102820; color: var(--green); border: 1px solid #1a3828; }
+  .badge-type { background: var(--bg4); color: var(--text2); border: 1px solid var(--border2); }
+
+  /* ── PARTICIPANT CARD ── */
+  .participant-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; }
+
+  .p-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    transition: border-color .15s;
+  }
+  .p-card:hover { border-color: var(--border2); }
+
+  .p-card-header {
+    padding: 16px 20px;
+    background: var(--bg3);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .p-card-name {
+    font-family: 'Bebas Neue';
+    font-size: 20px;
+    letter-spacing: 1px;
+    color: var(--text);
+    flex: 1;
+  }
+  .p-card-points {
+    font-family: 'DM Mono';
+    font-size: 22px;
+    color: var(--accent);
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .p-card-body { padding: 16px 20px; }
+
+  /* Tournament list in participant */
+  .t-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+  .t-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 10px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 13px;
+  }
+  .t-item-name { flex: 1; color: var(--text); font-weight: 500; }
+  .t-item-info { display: flex; gap: 6px; align-items: center; }
+
+  /* Add tournament inline form */
+  .add-t-form {
+    display: flex; gap: 8px; flex-wrap: wrap;
+    padding: 12px;
+    background: var(--bg4);
+    border: 1px dashed var(--border2);
+    border-radius: var(--radius);
+    margin-top: 8px;
+    overflow: hidden;
+    max-height: 0;
+    padding-top: 0; padding-bottom: 0;
+    opacity: 0;
+    transition: max-height .25s ease, opacity .2s ease, padding .2s ease;
+    pointer-events: none;
+  }
+  .add-t-form.open {
+    max-height: 200px;
+    padding: 12px;
+    opacity: 1;
+    pointer-events: all;
+  }
+  .add-t-form select { font-size: 13px; }
+  .btn-add-toggle {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 6px 12px;
+    background: transparent;
+    border: 1px dashed var(--border2);
+    border-radius: var(--radius);
+    color: var(--text3);
+    font-size: 12px; font-weight: 600;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    transition: all .15s;
+    text-transform: uppercase; letter-spacing: .5px;
+    margin-top: 6px;
+    width: 100%;
+    justify-content: center;
+  }
+  .btn-add-toggle:hover { color: var(--accent); border-color: var(--accent); }
+  .btn-add-toggle.open { color: var(--accent); border-color: var(--accent); border-style: solid; }
+
+  /* ── TEAM PAGE ── */
+  .team-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(440px, 1fr)); gap: 16px; }
+
+  .team-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .team-header {
+    padding: 14px 20px;
+    background: var(--bg3);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .team-name { font-family: 'Bebas Neue'; font-size: 22px; letter-spacing: 1px; }
+  .team-pts { font-family: 'DM Mono'; font-size: 20px; color: var(--green); }
+  .team-members { padding: 16px 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .member-slot {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px;
+  }
+  .member-slot-name { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
+  .member-slot-pts { font-family: 'DM Mono'; font-size: 13px; color: var(--accent); }
+  .team-tournaments { padding: 0 20px 16px; }
+  .team-t-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 10px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all .15s;
+    user-select: none;
+  }
+  .team-t-item:hover { border-color: var(--accent); }
+  .team-t-item.both {
+    border-color: var(--green);
+    background: #0f1f17;
+  }
+  .team-t-item.both .together-badge {
+    display: inline-flex;
+  }
+  .together-badge {
+    display: none;
+    align-items: center;
+    padding: 2px 7px;
+    background: #1a3828;
+    color: var(--green);
+    border-radius: 2px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    white-space: nowrap;
+  }
+  .bonus-pts {
+    font-family: 'DM Mono';
+    font-size: 12px;
+    color: var(--green);
+    white-space: nowrap;
+  }
+
+  /* ── ADD TEAM FORM ── */
+  .add-team-card {
+    background: var(--bg2);
+    border: 1px dashed var(--border2);
+    border-radius: var(--radius);
+    padding: 24px;
+  }
+
+  /* ── ADMIN ── */
+  .admin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  @media(max-width: 700px) {
+    .admin-grid { grid-template-columns: 1fr; }
+    .participant-grid { grid-template-columns: 1fr; }
+    .team-grid { grid-template-columns: 1fr; }
+  }
+
+  .tournament-type-row {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 12px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 6px;
+  }
+  .ttr-name { flex: 1; font-weight: 500; font-size: 14px; }
+  .ttr-levels { display: flex; gap: 6px; }
+  .ttr-level { font-family: 'DM Mono'; font-size: 12px; color: var(--text2); }
+
+  /* ── EMPTY ── */
+  .empty {
+    text-align: center; padding: 40px 20px;
+    color: var(--text3); font-size: 13px;
+    font-family: 'DM Mono';
+  }
+
+  /* ── DIVIDER ── */
+  .divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+
+  /* ── SCORE SUMMARY ── */
+  .score-bar {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 16px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 16px;
+  }
+  .score-bar-label { font-size: 12px; color: var(--text3); flex: 1; font-family: 'DM Mono'; }
+  .score-bar-val { font-family: 'DM Mono'; font-size: 14px; }
+
+  .flex { display: flex; }
+  .items-center { align-items: center; }
+  .gap-8 { gap: 8px; }
+  .justify-between { justify-content: space-between; }
+  .mb-8 { margin-bottom: 8px; }
+  .mb-16 { margin-bottom: 16px; }
+  .text-sm { font-size: 13px; }
+  .text-xs { font-size: 11px; }
+  .color-text3 { color: var(--text3); }
+
+  input[type=number] { -moz-appearance: textfield; }
+  input[type=number]::-webkit-inner-spin-button,
+  input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+  .tooltip { position: relative; }
+  .tooltip:hover::after {
+    content: attr(data-tip);
+    position: absolute; bottom: 110%; left: 50%; transform: translateX(-50%);
+    background: var(--bg4); color: var(--text2); border: 1px solid var(--border2);
+    padding: 4px 8px; border-radius: 3px; font-size: 11px; white-space: nowrap;
+    pointer-events: none; z-index: 999;
+  }
+
+  .pts-breakdown {
+    font-size: 11px; color: var(--text3); font-family: 'DM Mono';
+    margin-top: 2px;
+  }
+  .btn-copy {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 5px 9px;
+    background: transparent;
+    border: 1px solid var(--border2);
+    border-radius: var(--radius);
+    color: var(--text3);
+    font-size: 11px; font-weight: 600;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    transition: all .15s;
+    white-space: nowrap;
+  }
+  .btn-copy:hover { color: var(--accent); border-color: var(--accent); }
+  .btn-copy.copied { color: var(--green); border-color: var(--green); }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">⬡ RANGLISTE</div>
+  <div class="nav-tab active" onclick="showPage('index')">Teilnehmer</div>
+  <div class="nav-tab" onclick="showPage('teams')">Teams</div>
+  <div class="nav-tab" onclick="showPage('admin')">Admin</div>
+  <div style="flex:1"></div>
+  <div style="display:flex;align-items:center;gap:8px;padding:0 8px">
+    <button class="btn btn-ghost btn-sm" onclick="saveJSON()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+      Speichern
+    </button>
+    <label class="btn btn-ghost btn-sm" style="cursor:pointer">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      Laden
+      <input type="file" accept=".json" style="display:none" onchange="loadJSON(event)">
+    </label>
+    <div id="save-toast" style="display:none;font-family:'DM Mono';font-size:11px;color:var(--green);white-space:nowrap">✓ gespeichert</div>
+  </div>
+</nav>
+
+<!-- ══════════════════════════════════════════════════════════
+     INDEX: Teilnehmer
+══════════════════════════════════════════════════════════ -->
+<div class="page active" id="page-index">
+  <h1>Teilnehmer</h1>
+  <div class="subtitle">// punkte werden automatisch aufsummiert</div>
+
+  <div class="card mb-16">
+    <div class="card-title">Teilnehmer hinzufügen</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Name</label>
+        <input type="text" id="new-participant-name" placeholder="Name eingeben …" onkeydown="if(event.key==='Enter') addParticipant()">
+      </div>
+      <button class="btn btn-primary" onclick="addParticipant()">+ Hinzufügen</button>
+    </div>
+  </div>
+
+  <div class="participant-grid" id="participant-grid"></div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     TEAMS
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="page-teams">
+  <h1>Teams – Ranking</h1>
+  <div class="subtitle">// klick auf ein turnier markiert gemeinsame teilnahme → bonus punkte</div>
+
+  <div class="card mb-16 add-team-card">
+    <div class="card-title">Neues Team erstellen</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Teamname</label>
+        <input type="text" id="new-team-name" placeholder="Teamname …">
+      </div>
+      <div class="form-group">
+        <label>Mitglied 1</label>
+        <select id="team-m1"><option value="">— wählen —</option></select>
+      </div>
+      <div class="form-group">
+        <label>Mitglied 2</label>
+        <select id="team-m2"><option value="">— wählen —</option></select>
+      </div>
+      <button class="btn btn-primary" onclick="addTeam()">+ Team anlegen</button>
+    </div>
+  </div>
+
+  <!-- Ranking-Tabelle -->
+  <div class="card mb-16" id="ranking-section" style="display:none">
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px">
+      <div class="card-title" style="margin-bottom:0;flex:1">Rangliste</div>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:7px">
+          <label style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;white-space:nowrap">Vorteilspunkte:</label>
+          <select id="rounds-select" onchange="renderRanking()" style="width:160px;font-size:13px">
+            <option value="">— Runden wählen —</option>
+            <option value="3">3 Runden</option>
+            <option value="4">4 Runden</option>
+            <option value="5">5 Runden</option>
+            <option value="6">6 Runden</option>
+          </select>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="toggleSort()" id="sort-btn">↓ Nach Punkten sortieren</button>
+      </div>
+    </div>
+    <div id="ranking-table"></div>
+  </div>
+
+  <div class="team-grid" id="team-grid"></div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     ADMIN
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="page-admin">
+  <h1>Admin</h1>
+  <div class="subtitle">// turnierarten & gewinnstufen verwalten</div>
+
+  <div class="admin-grid">
+    <!-- Neue Turnierart -->
+    <div>
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+          <div class="card-title" id="tt-form-title" style="margin-bottom:0">Neue Turnierart</div>
+          <button class="btn btn-ghost btn-sm" id="tt-cancel-btn" onclick="cancelEditTT()" style="display:none">✕ Abbrechen</button>
+        </div>
+        <input type="hidden" id="tt-edit-id" value="">
+        <div class="form-group mb-16">
+          <label>Bezeichnung</label>
+          <input type="text" id="tt-name" placeholder="z. B. Debattierturnier">
+        </div>
+        <div class="card-title">Gewinnstufen & Punkte</div>
+        <div id="level-rows">
+          <!-- generated -->
+        </div>
+        <button class="btn btn-ghost btn-sm mb-16" onclick="addLevelRow()" style="margin-top:8px">+ Gewinnstufe</button>
+        <hr class="divider">
+        <button class="btn btn-primary" id="tt-save-btn" onclick="saveTournamentType()" style="width:100%">Turnierart speichern</button>
+      </div>
+    </div>
+
+    <!-- Bestehende Typen -->
+    <div>
+      <div class="card">
+        <div class="card-title">Gespeicherte Turnierarten</div>
+        <div id="tt-list"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════
+   STATE
+══════════════════════════════════════════════ */
+let state = {
+  tournamentTypes: [],   // { id, name, levels: [{label, points}] }
+  participants: [],      // { id, name, tournaments: [{id, typeId, levelIdx, instanceId?}] }
+  teams: [],             // { id, name, m1Id, m2Id, sharedTournamentIds: [] }
+};
+
+// instance: we track "tournament instances" — when user adds tournament to participant,
+// they can select an existing shared instance or create a new one.
+// We keep a global list of tournament instances per typeId.
+let tournamentInstances = []; // { id, typeId, label }
+
+function uid() { return Math.random().toString(36).slice(2,9); }
+
+/* ══════════════════════════════════════════════
+   NAV
+══════════════════════════════════════════════ */
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  event.currentTarget.classList.add('active');
+  if (id === 'teams') renderTeams();
+  if (id === 'index') renderParticipants();
+}
+
+/* ══════════════════════════════════════════════
+   ADMIN – Tournament Types
+══════════════════════════════════════════════ */
+let levelRowCount = 0;
+
+function addLevelRow() {
+  levelRowCount++;
+  const n = levelRowCount;
+  const row = document.createElement('div');
+  row.className = 'form-row mb-8';
+  row.id = 'lr-' + n;
+  row.innerHTML = `
+    <div class="form-group" style="flex:0 0 120px">
+      <label>Stufe ${n} – Label</label>
+      <input type="text" id="lr-label-${n}" placeholder="z. B. 1. Platz">
+    </div>
+    <div class="form-group" style="flex:0 0 90px">
+      <label>Punkte</label>
+      <input type="number" id="lr-pts-${n}" placeholder="0">
+    </div>
+    <button class="btn btn-danger btn-sm" style="margin-top:20px" onclick="document.getElementById('lr-${n}').remove(); relabelLevels()">✕</button>
+  `;
+  document.getElementById('level-rows').appendChild(row);
+}
+
+function relabelLevels() {
+  // just cosmetic – labels stay as-is
+}
+
+function saveTournamentType() {
+  const name = document.getElementById('tt-name').value.trim();
+  if (!name) { alert('Bitte Bezeichnung eingeben.'); return; }
+
+  const rows = document.querySelectorAll('#level-rows .form-row');
+  const levels = [];
+  rows.forEach(row => {
+    const n = row.id.split('-')[1];
+    const label = document.getElementById('lr-label-' + n)?.value.trim() || 'Stufe';
+    const pts = parseInt(document.getElementById('lr-pts-' + n)?.value) || 0;
+    levels.push({ label, points: pts });
+  });
+  if (levels.length === 0) { alert('Bitte mindestens eine Gewinnstufe anlegen.'); return; }
+
+  const editId = document.getElementById('tt-edit-id').value;
+  if (editId) {
+    // Edit mode: update existing
+    const tt = state.tournamentTypes.find(t => t.id === editId);
+    if (tt) { tt.name = name; tt.levels = levels; }
+    cancelEditTT();
+  } else {
+    // New mode
+    state.tournamentTypes.push({ id: uid(), name, levels });
+  }
+
+  document.getElementById('tt-name').value = '';
+  document.getElementById('level-rows').innerHTML = '';
+  levelRowCount = 0;
+  renderTTList();
+  renderParticipants();
+  renderTeams();
+}
+
+function startEditTT(id) {
+  const tt = state.tournamentTypes.find(t => t.id === id);
+  if (!tt) return;
+
+  // Highlight the row being edited
+  document.querySelectorAll('.tournament-type-row').forEach(r => r.style.background = '');
+  const row = document.getElementById('ttr-' + id);
+  if (row) row.style.background = 'var(--bg4)';
+
+  // Load into form
+  document.getElementById('tt-edit-id').value = id;
+  document.getElementById('tt-name').value = tt.name;
+  document.getElementById('level-rows').innerHTML = '';
+  levelRowCount = 0;
+  tt.levels.forEach(l => {
+    levelRowCount++;
+    const n = levelRowCount;
+    const row = document.createElement('div');
+    row.className = 'form-row mb-8';
+    row.id = 'lr-' + n;
+    row.innerHTML = `
+      <div class="form-group" style="flex:0 0 120px">
+        <label>Stufe ${n} – Label</label>
+        <input type="text" id="lr-label-${n}" value="${l.label}">
+      </div>
+      <div class="form-group" style="flex:0 0 90px">
+        <label>Punkte</label>
+        <input type="number" id="lr-pts-${n}" value="${l.points}">
+      </div>
+      <button class="btn btn-danger btn-sm" style="margin-top:20px" onclick="document.getElementById('lr-${n}').remove()">✕</button>
+    `;
+    document.getElementById('level-rows').appendChild(row);
+  });
+
+  // Switch form UI to edit mode
+  document.getElementById('tt-form-title').textContent = 'Turnierart bearbeiten';
+  document.getElementById('tt-save-btn').textContent = 'Änderungen speichern';
+  document.getElementById('tt-cancel-btn').style.display = '';
+
+  // Scroll form into view
+  document.getElementById('tt-name').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function cancelEditTT() {
+  document.getElementById('tt-edit-id').value = '';
+  document.getElementById('tt-name').value = '';
+  document.getElementById('level-rows').innerHTML = '';
+  levelRowCount = 0;
+  document.getElementById('tt-form-title').textContent = 'Neue Turnierart';
+  document.getElementById('tt-save-btn').textContent = 'Turnierart speichern';
+  document.getElementById('tt-cancel-btn').style.display = 'none';
+  document.querySelectorAll('.tournament-type-row').forEach(r => r.style.background = '');
+  addLevelRow(); addLevelRow(); addLevelRow();
+}
+
+function renderTTList() {
+  const el = document.getElementById('tt-list');
+  if (!state.tournamentTypes.length) {
+    el.innerHTML = '<div class="empty">Keine Turnierarten angelegt.</div>';
+    return;
+  }
+  el.innerHTML = state.tournamentTypes.map(tt => `
+    <div class="tournament-type-row" id="ttr-${tt.id}" style="flex-wrap:wrap;gap:10px;align-items:flex-start">
+      <span class="ttr-name" style="min-width:120px">${tt.name}</span>
+      <div class="ttr-levels" style="flex:1;flex-wrap:wrap;gap:8px;align-items:center">
+        ${tt.levels.map((l, i) => `
+          <span class="ttr-level" style="display:inline-flex;align-items:center;gap:5px">
+            ${l.label}:
+            <input
+              type="number"
+              value="${l.points}"
+              style="width:62px;padding:4px 7px;font-size:13px;font-family:monospace;color:var(--accent);background:var(--bg4);border:1px solid var(--border2);border-radius:3px;outline:none;"
+              onchange="updateLevelPoints('${tt.id}', ${i}, this.value)"
+              onfocus="this.style.borderColor='var(--accent)'"
+              onblur="this.style.borderColor='var(--border2)'"
+            />
+            <span style="color:var(--text3)">p</span>
+          </span>
+        `).join('')}
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <button class="btn btn-danger btn-sm" onclick="deleteTT('${tt.id}')">✕</button>
+        <button class="btn btn-ghost btn-sm" onclick="startEditTT('${tt.id}')" style="font-size:11px;padding:4px 8px">✎</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function updateLevelPoints(ttId, levelIdx, value) {
+  const tt = state.tournamentTypes.find(t => t.id === ttId);
+  if (!tt) return;
+  tt.levels[levelIdx].points = parseInt(value) || 0;
+  // re-render participants and teams so points update live
+  renderParticipants();
+  renderTeams();
+}
+
+function deleteTT(id) {
+  if (!confirm('Turnierart löschen?')) return;
+  state.tournamentTypes = state.tournamentTypes.filter(t => t.id !== id);
+  // also remove from participants
+  state.participants.forEach(p => {
+    p.tournaments = p.tournaments.filter(t => t.typeId !== id);
+  });
+  renderTTList();
+  renderParticipants();
+  renderTeams();
+}
+
+// init level rows
+addLevelRow(); addLevelRow(); addLevelRow();
+
+/* ══════════════════════════════════════════════
+   PARTICIPANTS
+══════════════════════════════════════════════ */
+function addParticipant() {
+  const name = document.getElementById('new-participant-name').value.trim();
+  if (!name) return;
+  state.participants.push({ id: uid(), name, tournaments: [] });
+  document.getElementById('new-participant-name').value = '';
+  renderParticipants();
+  renderTeamSelects();
+}
+
+function calcPoints(p) {
+  return p.tournaments.reduce((sum, t) => {
+    const tt = state.tournamentTypes.find(x => x.id === t.typeId);
+    if (!tt) return sum;
+    return sum + (tt.levels[t.levelIdx]?.points || 0);
+  }, 0);
+}
+
+function renderParticipants() {
+  const grid = document.getElementById('participant-grid');
+  if (!state.participants.length) {
+    grid.innerHTML = '<div class="empty" style="grid-column:1/-1">Noch keine Teilnehmer angelegt.</div>';
+    return;
+  }
+  grid.innerHTML = state.participants.map(p => participantCard(p)).join('');
+}
+
+function participantCard(p) {
+  const pts = calcPoints(p);
+
+  const tList = p.tournaments.length ? p.tournaments.map(t => {
+    const tt = state.tournamentTypes.find(x => x.id === t.typeId);
+    if (!tt) return '';
+    const level = tt.levels[t.levelIdx];
+    const inst = tournamentInstances.find(i => i.id === t.instanceId);
+    const instLabel = inst ? ` <span style="color:var(--text3);font-size:11px">[${inst.label}]</span>` : '';
+    const levelBadge = t.levelIdx === 0 ? 'badge-gold' : t.levelIdx === 1 ? 'badge-silver' : 'badge-bronze';
+    return `
+      <div class="t-item">
+        <span class="t-item-name">${tt.name}${instLabel}</span>
+        <div class="t-item-info">
+          <span class="badge ${levelBadge}">${level?.label || '?'}</span>
+          <span class="badge badge-points">+${level?.points || 0}p</span>
+          <button class="btn btn-danger btn-sm" onclick="removeParticipantTournament('${p.id}','${t.id}')">✕</button>
+        </div>
+      </div>
+    `;
+  }).join('') : '<div class="empty" style="padding:8px 0;font-size:12px">Keine Turniere.</div>';
+
+  const typeOptions = state.tournamentTypes.map(tt => `<option value="${tt.id}">${tt.name}</option>`).join('');
+  const hasTypes = state.tournamentTypes.length > 0;
+
+  return `
+    <div class="p-card" id="pcard-${p.id}">
+      <div class="p-card-header">
+        <span class="p-card-name">${p.name}</span>
+        <span class="p-card-points">${pts}<span style="font-size:13px;color:var(--text3)">p</span></span>
+        <button class="btn-copy" onclick="copyCardScreenshot(this, 'pcard-${p.id}')" title="Screenshot kopieren">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          Kopieren
+        </button>
+        <button class="btn btn-danger btn-sm" onclick="deleteParticipant('${p.id}')">✕</button>
+      </div>
+      <div class="p-card-body">
+        <div class="t-list">${tList}</div>
+        ${hasTypes ? `
+        <button class="btn-add-toggle" id="atf-toggle-${p.id}" onclick="toggleAddForm('${p.id}')">＋ Turnier hinzufügen</button>
+        <div class="add-t-form" id="atf-${p.id}">
+          <div class="form-group" style="min-width:130px">
+            <label>Turnierart</label>
+            <select id="at-type-${p.id}" onchange="updateLevelSelect('${p.id}'); updateInstanceSelect('${p.id}')">
+              <option value="">— wählen —</option>
+              ${typeOptions}
+            </select>
+          </div>
+          <div class="form-group" style="min-width:110px">
+            <label>Gewinnstufe</label>
+            <select id="at-level-${p.id}">
+              <option value="">—</option>
+            </select>
+          </div>
+          <div class="form-group" style="min-width:150px">
+            <label>Turnier-Instanz</label>
+            <select id="at-inst-${p.id}">
+              <option value="__new">— Neue Instanz —</option>
+            </select>
+          </div>
+          <div class="form-group" id="at-inst-name-wrap-${p.id}" style="min-width:130px">
+            <label>Name der Instanz</label>
+            <input type="text" id="at-inst-name-${p.id}" placeholder="z. B. Wien 2024">
+          </div>
+          <button class="btn btn-success btn-sm" style="margin-top:19px" onclick="addTournamentToParticipant('${p.id}')">+ Hinzufügen</button>
+        </div>` : '<div class="color-text3 text-xs" style="margin-top:8px">→ Erst Turnierarten im Admin anlegen.</div>'}
+      </div>
+    </div>
+  `;
+}
+
+function toggleAddForm(pId) {
+  const form = document.getElementById('atf-' + pId);
+  const btn = document.getElementById('atf-toggle-' + pId);
+  if (!form) return;
+  const isOpen = form.classList.contains('open');
+  form.classList.toggle('open', !isOpen);
+  btn.classList.toggle('open', !isOpen);
+  btn.textContent = isOpen ? '＋ Turnier hinzufügen' : '－ Schließen';
+}
+
+function updateLevelSelect(pId) {
+  const typeId = document.getElementById('at-type-' + pId)?.value;
+  const sel = document.getElementById('at-level-' + pId);
+  if (!sel) return;
+  const tt = state.tournamentTypes.find(t => t.id === typeId);
+  if (!tt) { sel.innerHTML = '<option value="">—</option>'; return; }
+  sel.innerHTML = tt.levels.map((l, i) => `<option value="${i}">${l.label} (${l.points}p)</option>`).join('');
+}
+
+function updateInstanceSelect(pId) {
+  const typeId = document.getElementById('at-type-' + pId)?.value;
+  const sel = document.getElementById('at-inst-' + pId);
+  if (!sel) return;
+  const instances = tournamentInstances.filter(i => i.typeId === typeId);
+  sel.innerHTML = '<option value="__new">— Neue Instanz —</option>' +
+    instances.map(i => `<option value="${i.id}">${i.label}</option>`).join('');
+  // show/hide name input
+  updateInstNameWrap(pId);
+  sel.onchange = () => updateInstNameWrap(pId);
+}
+
+function updateInstNameWrap(pId) {
+  const sel = document.getElementById('at-inst-' + pId);
+  const wrap = document.getElementById('at-inst-name-wrap-' + pId);
+  if (!sel || !wrap) return;
+  wrap.style.display = sel.value === '__new' ? '' : 'none';
+}
+
+function addTournamentToParticipant(pId) {
+  const typeId = document.getElementById('at-type-' + pId)?.value;
+  const levelIdx = document.getElementById('at-level-' + pId)?.value;
+  const instSel = document.getElementById('at-inst-' + pId)?.value;
+  if (!typeId || levelIdx === '' || levelIdx === undefined) { alert('Bitte Turnierart und Stufe wählen.'); return; }
+
+  let instanceId;
+  if (instSel === '__new') {
+    const instName = document.getElementById('at-inst-name-' + pId)?.value.trim() || 'Turnier';
+    const newInst = { id: uid(), typeId, label: instName };
+    tournamentInstances.push(newInst);
+    instanceId = newInst.id;
+  } else {
+    instanceId = instSel;
+  }
+
+  const p = state.participants.find(x => x.id === pId);
+  p.tournaments.push({ id: uid(), typeId, levelIdx: parseInt(levelIdx), instanceId });
+  renderParticipants();
+  renderTeams();
+  // re-open form for this participant after re-render so user can add more
+}
+
+function removeParticipantTournament(pId, tId) {
+  const p = state.participants.find(x => x.id === pId);
+  p.tournaments = p.tournaments.filter(t => t.id !== tId);
+  renderParticipants();
+  renderTeams();
+}
+
+function deleteParticipant(id) {
+  if (!confirm('Teilnehmer wirklich löschen?')) return;
+  state.participants = state.participants.filter(p => p.id !== id);
+  state.teams = state.teams.filter(t => t.m1Id !== id && t.m2Id !== id);
+  renderParticipants();
+  renderTeamSelects();
+  renderTeams();
+}
+
+/* ══════════════════════════════════════════════
+   TEAMS
+══════════════════════════════════════════════ */
+function renderTeamSelects() {
+  const opts = '<option value="">— wählen —</option>' +
+    state.participants.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+  ['team-m1','team-m2'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = opts;
+  });
+}
+
+function addTeam() {
+  const name = document.getElementById('new-team-name').value.trim() || 'Team';
+  const m1Id = document.getElementById('team-m1').value;
+  const m2Id = document.getElementById('team-m2').value;
+  if (!m1Id || !m2Id) { alert('Bitte zwei Mitglieder wählen.'); return; }
+  if (m1Id === m2Id) { alert('Zwei verschiedene Mitglieder wählen.'); return; }
+  state.teams.push({ id: uid(), name, m1Id, m2Id, sharedTournamentIds: [], locked: false });
+  document.getElementById('new-team-name').value = '';
+  renderTeams();
+}
+
+function calcTeamPoints(team) {
+  const m1 = state.participants.find(p => p.id === team.m1Id);
+  const m2 = state.participants.find(p => p.id === team.m2Id);
+  if (!m1 || !m2) return 0;
+
+  const base = calcPoints(m1) + calcPoints(m2);
+
+  // Bonus: for each shared tournament instance both attended, add combined individual points once more
+  let bonus = 0;
+  team.sharedTournamentIds.forEach(instId => {
+    const t1 = m1.tournaments.find(t => t.instanceId === instId);
+    const t2 = m2.tournaments.find(t => t.instanceId === instId);
+    if (t1 && t2) {
+      const tt1 = state.tournamentTypes.find(x => x.id === t1.typeId);
+      const tt2 = state.tournamentTypes.find(x => x.id === t2.typeId);
+      bonus += (tt1?.levels[t1.levelIdx]?.points || 0);
+    }
+  });
+
+  return base + bonus;
+}
+
+function getSharedInstances(team) {
+  const m1 = state.participants.find(p => p.id === team.m1Id);
+  const m2 = state.participants.find(p => p.id === team.m2Id);
+  if (!m1 || !m2) return [];
+
+  const m1Insts = new Set(m1.tournaments.map(t => t.instanceId).filter(Boolean));
+  const m2Insts = new Set(m2.tournaments.map(t => t.instanceId).filter(Boolean));
+
+  return [...m1Insts].filter(id => m2Insts.has(id));
+}
+
+function toggleSharedTournament(teamId, instId) {
+  const team = state.teams.find(t => t.id === teamId);
+  const idx = team.sharedTournamentIds.indexOf(instId);
+  if (idx === -1) team.sharedTournamentIds.push(instId);
+  else team.sharedTournamentIds.splice(idx, 1);
+  renderTeams();
+}
+
+let sortByPoints = false;
+
+function toggleSort() {
+  sortByPoints = !sortByPoints;
+  const btn = document.getElementById('sort-btn');
+  if (btn) btn.textContent = sortByPoints ? '↑ Sortierung aufheben' : '↓ Nach Punkten sortieren';
+  renderTeams();
+}
+
+function toggleLocked(teamId) {
+  const team = state.teams.find(t => t.id === teamId);
+  if (team) team.locked = !team.locked;
+  renderTeams();
+}
+
+// Vorteilspunkte matrix: [rounds3, rounds4, rounds5, rounds6]
+// Each entry: [minPoints, vorteilPunkte]  — sorted descending by minPoints
+const VORTEIL_MATRIX = {
+  3: [[240, 6], [200, 5], [160, 4], [120, 3], [80, 2], [40, 1], [0, 0]],
+  4: [[216, 6], [180, 5], [144, 4], [108, 3], [72, 2], [36, 1], [0, 0]],
+  5: [[192, 6], [160, 5], [128, 4], [96, 3], [64, 2], [32, 1], [0, 0]],
+  6: [[180, 6], [150, 5], [120, 4], [90, 3], [60, 2], [30, 1], [0, 0]],
+};
+
+function getVorteilPunkte(pts, rounds) {
+  const matrix = VORTEIL_MATRIX[rounds];
+  if (!matrix) return null;
+  for (const [min, vp] of matrix) {
+    if (pts >= min) return vp;
+  }
+  return 0;
+}
+
+function renderRanking() {
+  const section = document.getElementById('ranking-section');
+  const table = document.getElementById('ranking-table');
+  if (!section || !table) return;
+  if (!state.teams.length) { section.style.display = 'none'; return; }
+  section.style.display = '';
+
+  const roundsSel = document.getElementById('rounds-select');
+  const rounds = roundsSel ? parseInt(roundsSel.value) || null : null;
+
+  let teams = [...state.teams];
+  if (sortByPoints) {
+    teams.sort((a, b) => {
+      if (a.locked !== b.locked) return a.locked ? 1 : -1;
+      if (rounds) {
+        const vpA = getVorteilPunkte(calcTeamPoints(a), rounds) ?? -1;
+        const vpB = getVorteilPunkte(calcTeamPoints(b), rounds) ?? -1;
+        if (vpB !== vpA) return vpB - vpA;
+      }
+      return calcTeamPoints(b) - calcTeamPoints(a);
+    });
+  }
+
+  const showVP = !!rounds;
+  let rankCounter = 0;
+
+  table.innerHTML = `<table>
+    <thead><tr>
+      <th style="width:40px">#</th>
+      <th>Team</th>
+      <th>Mitglieder</th>
+      <th style="text-align:right">Punkte</th>
+      ${showVP ? '<th style="text-align:center;color:var(--accent)">VP</th>' : ''}
+      <th style="width:80px;text-align:center">Gesperrt</th>
+    </tr></thead>
+    <tbody>
+      ${teams.map((team) => {
+        const m1 = state.participants.find(p => p.id === team.m1Id);
+        const m2 = state.participants.find(p => p.id === team.m2Id);
+        const pts = calcTeamPoints(team);
+        const vp = showVP ? getVorteilPunkte(pts, rounds) : null;
+        if (!team.locked) rankCounter++;
+        const rankDisplay = team.locked
+          ? '<span style="color:var(--red);font-family:monospace;font-size:12px">—</span>'
+          : `<span style="font-family:monospace;font-weight:600;color:var(--accent)">${rankCounter}</span>`;
+        const vpColor = vp >= 5 ? 'var(--green)' : vp >= 3 ? 'var(--accent)' : vp >= 1 ? 'var(--text2)' : 'var(--text3)';
+        return `<tr style="${team.locked ? 'opacity:0.45' : ''}">
+          <td>${rankDisplay}</td>
+          <td style="color:var(--text);font-weight:600">${team.name}</td>
+          <td style="font-size:12px">${m1?.name || '?'} & ${m2?.name || '?'}</td>
+          <td style="text-align:right;font-family:monospace;color:var(--green)">${pts}p</td>
+          ${showVP ? `<td style="text-align:center;font-family:monospace;font-weight:700;font-size:16px;color:${vpColor}">${vp}</td>` : ''}
+          <td style="text-align:center">
+            <input type="checkbox" ${team.locked ? 'checked' : ''} onchange="toggleLocked('${team.id}')"
+              style="width:15px;height:15px;accent-color:var(--red);cursor:pointer">
+          </td>
+        </tr>`;
+      }).join('')}
+    </tbody>
+  </table>
+  ${showVP ? `<div style="margin-top:12px;padding:10px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);font-size:11px;color:var(--text3);font-family:monospace;display:flex;gap:16px;flex-wrap:wrap">
+    <span style="color:var(--text2);font-weight:600">VP-Tabelle (${rounds} Runden):</span>
+    ${VORTEIL_MATRIX[rounds].map(([min, vp], idx, arr) => {
+      const max = idx === 0 ? '∞' : (arr[idx-1][0] - 1) + 'p';
+      return `<span><b style="color:var(--accent)">${vp}VP</b> = ${min}–${max}</span>`;
+    }).join('')}
+  </div>` : ''}`;
+}
+
+function renderTeams() {
+  renderTeamSelects();
+  const grid = document.getElementById('team-grid');
+  if (!grid) return;
+  if (!state.teams.length) {
+    grid.innerHTML = '<div class="empty" style="grid-column:1/-1">Noch keine Teams angelegt.</div>';
+    renderRanking();
+    return;
+  }
+
+  let teams = [...state.teams];
+  if (sortByPoints) {
+    teams.sort((a, b) => {
+      if (a.locked !== b.locked) return a.locked ? 1 : -1;
+      return calcTeamPoints(b) - calcTeamPoints(a);
+    });
+  }
+
+  grid.innerHTML = teams.map(team => teamCard(team)).join('');
+  renderRanking();
+}
+
+function teamCard(team) {
+  const m1 = state.participants.find(p => p.id === team.m1Id);
+  const m2 = state.participants.find(p => p.id === team.m2Id);
+  if (!m1 || !m2) return '';
+
+  const totalPts = calcTeamPoints(team);
+  const m1Pts = calcPoints(m1);
+  const m2Pts = calcPoints(m2);
+
+  // shared instances = both members attended
+  const sharedInsts = getSharedInstances(team);
+
+  const sharedRows = sharedInsts.map(instId => {
+    const inst = tournamentInstances.find(i => i.id === instId);
+    const isChecked = team.sharedTournamentIds.includes(instId);
+
+    // get points for bonus calculation
+    const t1 = m1.tournaments.find(t => t.instanceId === instId);
+    const t2 = m2.tournaments.find(t => t.instanceId === instId);
+    const tt1 = t1 ? state.tournamentTypes.find(x => x.id === t1.typeId) : null;
+    const tt2 = t2 ? state.tournamentTypes.find(x => x.id === t2.typeId) : null;
+    const bonusPts = (tt1?.levels[t1?.levelIdx]?.points || 0);
+
+    return `
+      <div class="team-t-item ${isChecked ? 'both' : ''}" onclick="toggleSharedTournament('${team.id}','${instId}')">
+        <span style="color:var(--text2);font-size:18px">${isChecked ? '☑' : '☐'}</span>
+        <span style="flex:1;font-weight:500">${inst?.label || '?'}</span>
+        <span style="font-size:11px;color:var(--text3)">${m1.name} & ${m2.name}</span>
+        <span class="together-badge">Gemeinsam</span>
+        ${isChecked ? `<span class="bonus-pts">+${bonusPts}p Bonus</span>` : ''}
+      </div>
+    `;
+  }).join('');
+
+  const bonusTotal = team.sharedTournamentIds.reduce((sum, instId) => {
+    const t1 = m1.tournaments.find(t => t.instanceId === instId);
+    const tt1 = t1 ? state.tournamentTypes.find(x => x.id === t1.typeId) : null;
+    return sum + (tt1?.levels[t1?.levelIdx]?.points || 0);
+  }, 0);
+
+  return `
+    <div class="team-card" id="tcard-${team.id}" style="${team.locked ? 'opacity:0.5;border-color:#3a2020' : ''}">
+      <div class="team-header" style="${team.locked ? 'background:#1a1010' : ''}">
+        <span class="team-name">${team.name}</span>
+        <div style="display:flex;align-items:center;gap:12px">
+          ${team.locked ? '<span style="font-size:11px;color:var(--red);font-family:monospace;text-transform:uppercase;letter-spacing:1px">Gesperrt</span>' : ''}
+          <span class="team-pts" style="${team.locked ? 'color:var(--text3)' : ''}">${totalPts}p</span>
+          <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:11px;color:var(--text3)">
+            <input type="checkbox" ${team.locked ? 'checked' : ''} onchange="toggleLocked('${team.id}')" onclick="event.stopPropagation()"
+              style="width:13px;height:13px;accent-color:var(--red);cursor:pointer">
+            Sperren
+          </label>
+          <button class="btn-copy" onclick="copyCardScreenshot(this, 'tcard-${team.id}')" title="Screenshot kopieren">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            Kopieren
+          </button>
+          <button class="btn btn-danger btn-sm" onclick="deleteTeam('${team.id}')">✕</button>
+        </div>
+      </div>
+      <div class="team-members">
+        <div class="member-slot">
+          <div class="member-slot-name">${m1.name}</div>
+          <div class="member-slot-pts">${m1Pts}p</div>
+        </div>
+        <div class="member-slot">
+          <div class="member-slot-name">${m2.name}</div>
+          <div class="member-slot-pts">${m2Pts}p</div>
+        </div>
+      </div>
+
+      ${sharedInsts.length ? `
+      <div class="team-tournaments">
+        <div class="card-title" style="margin-bottom:8px">Gemeinsame Turniere – anklicken für Bonus</div>
+        ${sharedRows}
+        ${bonusTotal > 0 ? `<div class="score-bar" style="margin-top:8px">
+          <span class="score-bar-label">Basis ${m1Pts + m2Pts}p + Bonus ${bonusTotal}p</span>
+          <span class="score-bar-val" style="color:var(--green)">=&nbsp;${totalPts}p</span>
+        </div>` : ''}
+      </div>` : `<div style="padding:0 20px 16px;color:var(--text3);font-size:12px;font-family:monospace">Keine gemeinsamen Turnier-Instanzen gefunden.</div>`}
+    </div>
+  `;
+}
+
+function deleteTeam(id) {
+  state.teams = state.teams.filter(t => t.id !== id);
+  renderTeams();
+}
+
+/* ══════════════════════════════════════════════
+   SCREENSHOT / COPY
+══════════════════════════════════════════════ */
+async function copyCardScreenshot(btn, elementId) {
+  const el = document.getElementById(elementId);
+  if (!el) return;
+
+  // Hide all buttons/controls inside while capturing
+  const hideSelectors = '.btn-copy, .btn-danger, .btn-add-toggle, .add-t-form, .btn-add-toggle, label[style*="cursor"]';
+  const hidden = [...el.querySelectorAll(hideSelectors)];
+  hidden.forEach(h => h.dataset.prevDisplay = h.style.display || '');
+  hidden.forEach(h => h.style.display = 'none');
+
+  try {
+    const canvas = await html2canvas(el, {
+      backgroundColor: '#161616',
+      scale: 2,
+      useCORS: true,
+      logging: false,
+    });
+
+    canvas.toBlob(async blob => {
+      try {
+        await navigator.clipboard.write([
+          new ClipboardItem({ 'image/png': blob })
+        ]);
+        btn.classList.add('copied');
+        const orig = btn.innerHTML;
+        btn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Kopiert!';
+        setTimeout(() => { btn.classList.remove('copied'); btn.innerHTML = orig; }, 2000);
+      } catch(e) {
+        // Fallback: open in new tab
+        const url = URL.createObjectURL(blob);
+        window.open(url, '_blank');
+        setTimeout(() => URL.revokeObjectURL(url), 5000);
+      }
+    }, 'image/png');
+  } finally {
+    hidden.forEach(h => h.style.display = h.dataset.prevDisplay);
+  }
+}
+
+/* ══════════════════════════════════════════════
+   SAVE / LOAD JSON
+══════════════════════════════════════════════ */
+function saveJSON() {
+  const data = { state, tournamentInstances };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  const date = new Date().toISOString().slice(0,10);
+  a.download = 'turnier-daten-' + date + '.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+  const toast = document.getElementById('save-toast');
+  toast.textContent = '✓ gespeichert';
+  toast.style.display = 'block';
+  setTimeout(() => toast.style.display = 'none', 2000);
+}
+
+function loadJSON(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!data.state || !data.tournamentInstances) throw new Error('Ungültiges Format');
+      state = data.state;
+      tournamentInstances = data.tournamentInstances;
+      renderTTList();
+      renderParticipants();
+      renderTeams();
+      const toast = document.getElementById('save-toast');
+      toast.textContent = '✓ geladen';
+      toast.style.display = 'block';
+      setTimeout(() => { toast.style.display = 'none'; toast.textContent = '✓ gespeichert'; }, 2000);
+    } catch(err) {
+      alert('Fehler beim Laden: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+/* ══════════════════════════════════════════════
+   INIT
+══════════════════════════════════════════════ */
+renderTTList();
+renderParticipants();
+renderTeams();
+</script>
+</body>
+</html>
